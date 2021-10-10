@@ -11,6 +11,8 @@ typedef struct _vocalc {
   double freq_hi;
   int num_bands;
   double bandwidth;
+  void *m_outlet1;
+  void *m_outlet2;
 } t_vocalc;
 
 // function declarations
@@ -21,12 +23,14 @@ void vocalc_float(t_vocalc *v, double lo);
 void vocalc_ft1(t_vocalc *v, double hi);
 void vocalc_in2(t_vocalc *v, long bands);
 void vocalc_ft3(t_vocalc *v, double bw);
+void calculateValues(t_vocalc *v, double min, double max, long bands,
+                     double bw);
+double getIdealQ(double f1, double f2);
 
 // function definitions
 void ext_main(void *r)
 
 {
-  post("entering ext_main");
   t_class *c;
 
   c = class_new("vocalc", (method)vocalc_new, (method)NULL, sizeof(t_vocalc),
@@ -44,50 +48,69 @@ void ext_main(void *r)
 
 void *vocalc_new()
 {
-  t_vocalc *n = (t_vocalc *)object_alloc(vocalc_class);
+  t_vocalc *v = (t_vocalc *)object_alloc(vocalc_class);
 
-  // instantiate inlets
-  floatin(n, 3); // bandwidth inlet
-  intin(n, 2);   // band num inlet
-  floatin(n, 1); // freq_hi inlet
+  // instantiate inlets and outlets
+  floatin(v, 3); // bandwidth inlet
+  intin(v, 2);   // band num inlet
+  floatin(v, 1); // freq_hi inlet
+  v->m_outlet2 = floatout((t_vocalc *)v);
+  v->m_outlet1 = listout((t_vocalc *)v);
 
   // INITIALIZE YOUR CLASS VALUES HERE !!!!
-  n->freq_lo   = 80.;
-  n->freq_hi   = 12000.;
-  n->num_bands = 20;
-  n->bandwidth = 100;
-  return n;
+  v->freq_lo   = 80.;
+  v->freq_hi   = 12000.;
+  v->num_bands = 20;
+  v->bandwidth = 100;
+  return v;
 }
 
 void vocalc_bang(t_vocalc *v)
 {
-  post("vocalc holds values: lo: % f hi: % f bands: % d bw: % f ", v->freq_lo,
-       v->freq_hi, v->num_bands, v->bandwidth);
+  calculateValues(v, v->freq_lo, v->freq_hi, v->num_bands, v->bandwidth);
 }
 
 void vocalc_float(t_vocalc *v, double lo)
 {
   v->freq_lo = lo;
-  post("inlet 0 recieved float %f", lo);
+  calculateValues(v, v->freq_lo, v->freq_hi, v->num_bands, v->bandwidth);
 }
 
 void vocalc_ft1(t_vocalc *v, double hi)
 {
   v->freq_hi = hi;
-  post("inlet 1 received message %f", hi);
+  calculateValues(v, v->freq_lo, v->freq_hi, v->num_bands, v->bandwidth);
 }
 void vocalc_in2(t_vocalc *v, long bands)
 {
   v->num_bands = bands;
-  post("inlet 2 received message %i", bands);
+  calculateValues(v, v->freq_lo, v->freq_hi, v->num_bands, v->bandwidth);
 }
 void vocalc_ft3(t_vocalc *v, double bw)
 {
   v->bandwidth = bw;
-  post("inlet 3 received message %f", bw);
+  calculateValues(v, v->freq_lo, v->freq_hi, v->num_bands, v->bandwidth);
 }
 
-double getScalar(double min, double max, long bands, double bw)
+void calculateValues(t_vocalc *v, double min, double max, long bands, double bw)
 {
-  return (log(max) / log(min) - 1.) / (bands - 1);
+  double scalar = (log(max) / log(min) - 1.) / (bands - 1);
+
+  t_atom centerFreqs[bands];
+  double f1, f2;
+  for (int i = 0; i < bands; i++) {
+    double f = pow(min, (1. + (scalar * i)));
+    if (i == 0)
+      f1 = f;
+    else if (i == 1)
+      f2 = f;
+
+    atom_setfloat(centerFreqs + i, f);
+  }
+
+  double idealQ = getIdealQ(f1, f2);
+  outlet_list(v->m_outlet1, 0L, bands, centerFreqs);
+  outlet_float(v->m_outlet2, idealQ);
 }
+
+double getIdealQ(double f1, double f2) { return sqrt(f1 * f2) / (f2 - f1); }
