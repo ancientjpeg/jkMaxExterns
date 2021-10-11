@@ -1,0 +1,12 @@
+To use this max 4 live patch, you will likely have to transfer the vocalc.mxo file into your user's Max folder (/Users/YOUR_USERNAME/Documents/Max 8/Library).
+After that, the vocoder .amxd file should be able to be dragged and dropped into ableton as with any max 4 live plugin.
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+PLEASE NOTE:
+ - The GUI is very touchy at the moment. It will freeze up if you try dragging the bands dial around - try typing in values instead.
+ - This plugin sounds FANTASTIC when you turn the bandwidth to very low amounts (i.e. below 3.0%)-it almost becomes a resonator.
+ - The design for this plugin was heavily reliant on the tutorial found at this link: https://cycling74.com/tutorials/a-basic-vocoder-tutorial-part-1 
+
+Please let me know about any crashes at jacksonkaplan@alum.calarts.edu.
