@@ -1,3 +1,7 @@
+# DEPRECATION NOTICE
+
+Please see [Metallicizer](https://nthn.gumroad.com/l/jk_nthn_metallicizer), my M4L Plugin with [Nathan Blair](https://github.com/ncblair). That is the successor to the work I was doing in here, but I'll leave this code open for anyone who's curious.
+
 ## externs in this repo
  - vocalc
     - a small and simple band calculator for vocoders. 
